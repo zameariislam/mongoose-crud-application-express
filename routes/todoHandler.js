@@ -1,28 +1,69 @@
 
-const { ObjectID, ObjectId } = require('bson')
+const { ObjectId } = require('bson')
 const express = require('express')
 const router = express.Router()
 const mongoose = require('mongoose')
 const todoSchema = require('../schemas/todoSchema')
+const userSchema=require('../schemas/userSchema')
+const checkAuth = require('../middlewares/checkAuth')
 
 
 
-const Todo = new mongoose.model('Todo', todoSchema)
+const Todo = mongoose.model('Todo', todoSchema)
+const User = mongoose.model('User', userSchema)
+
 
 
 
 //   get all the todos 
 
-router.get('/', async (req, res) => {
+router.get('/', checkAuth,  async (req, res) => {
+
 
 
     try {
-        const todos = await Todo.find({ status: 'active' }).select({ title: 1, description: 1 })
+        const todos = await Todo.find({ }).populate('user').select({ title: 1, description: 1 })
 
-        console.log(todos)
+       
 
         res.status(200).send({
-            message: 'todo is successfully get'
+           
+            message: 'todo is successfully get',
+            data:todos,
+
+        })
+
+    }
+    catch (err) {
+
+
+        res.status(500).send({
+            message: 'There was a server side error'
+            // message: err.message
+
+
+
+        })
+
+    }
+
+
+
+
+
+})
+// get active 
+
+router.get('/active', async (req, res) => {
+
+
+    try {
+        const todo = new Todo()
+        const data = await todo.findActive()
+
+
+        res.status(200).send({
+            data
 
         })
 
@@ -42,6 +83,38 @@ router.get('/', async (req, res) => {
 
 
 })
+
+router.get('/Js', async (req, res) => {
+
+
+    try {
+
+        const data = await Todo.findByJs()
+
+
+        res.status(200).send({
+            data
+
+        })
+
+    }
+    catch (err) {
+
+
+        res.status(500).send({
+            message: 'There was a server side error'
+
+        })
+
+    }
+
+
+
+
+
+})
+
+
 // get a todo 
 router.get('/:id', async (req, res) => {
 
@@ -69,10 +142,17 @@ router.get('/:id', async (req, res) => {
 })
 
 // POST A TODO 
-router.post('/', async (req, res) => {
+router.post('/', checkAuth, async (req, res) => {
 
     try {
-        const todo = new Todo(req.body)
+        const todo = new Todo({...req.body,
+            user:req.userId
+            })
+           await  User.updateOne({_id:req.userId},{
+                $push:{
+                    todos:todo._id
+                }
+            })
         const result = await todo.save()
         console.log(result)
 
@@ -86,7 +166,8 @@ router.post('/', async (req, res) => {
 
 
         res.status(500).send({
-            message: 'There was a server side error'
+            // message: 'There was a server side error'
+            message: err.message
 
         })
 

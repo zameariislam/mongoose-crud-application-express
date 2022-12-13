@@ -1,12 +1,10 @@
 const express = require('express')
+const dotenv = require('dotenv')
+const app = express()
 const mongoose = require('mongoose');
 const todoHandler = require('./routes/todoHandler')
-
-
-const app = express()
-app.use(express.json())
-
-app.use('/todos', todoHandler)
+const userHandler = require('./routes/userHandler')
+dotenv.config()
 
 
 const port = 8000
@@ -17,16 +15,22 @@ mongoose.connect("mongodb+srv://mytodos:xg9pdsPGoCNXFXDL@cluster0.vmx3iz0.mongod
     .catch((err) => console.log(err.message))
 
 
+app.use(express.json())
+
+app.use('/todos', todoHandler)
+app.use('/user', userHandler)
+
+
+
 
 
 app.get('/', (req, res) => {
-    res.json({
-        message: 'it works'
-    })
+    // res.json({
+    //     message: 'it works'
+    // })
+    res.send('I am from response')
+
 })
-
-
-
 
 
 

@@ -1,7 +1,8 @@
+
 const mongoose = require('mongoose')
 
 
-const todoSchema = new mongoose.Schema({
+const todoSchema = mongoose.Schema({
     title: {
         type: String,
         required: true
@@ -16,11 +17,34 @@ const todoSchema = new mongoose.Schema({
         type: Date,
         default: Date.now()
 
+    },
+    user:{
+        type:mongoose.Types.ObjectId,
+        ref:'User'
+
+    }
+})
+
+//   instance method 
+
+todoSchema.methods = {
+    findActive: function () {
+        return mongoose.model('Todo').find({ status: 'inactive' })
+
     }
 
+}
+
+// static method 
+todoSchema.statics={
+    findByJs:function(){
+        return this.find({title:/js/i})
 
 
-})
+    }
+}
+
+
 
 module.exports = todoSchema
 
